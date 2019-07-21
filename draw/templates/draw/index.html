@@ -9,28 +9,116 @@
     <link rel="stylesheet" type="text/css" href="{% static 'draw/vendor/bootstrap/css/bootstrap.min.css' %}">
     <script type="text/javascript" src="{% static 'draw/vendor/jquery/jquery-3.3.1.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'draw/vendor/paper/paper-full.min.js' %}"></script>
+  
 
     <style type="text/css">
+      
+      #myCanvas {
+        border: 3px solid black;
+      }
     </style>
 
 </head>
 <body>
     <!-- You may change the dimensions of this canvas -->
-    <canvas id="myCanvas" width="750px" height="750px"></canvas>
+    <canvas id="myCanvas" width="590px" height="550px" style="text-align:center;"></canvas>
 </body>
 <script>
+//     var colors = [];
+//     while (colors.length < 100) {
+//         do {
+//             var color = Math.floor((Math.random()*1000000)+1);
+//         } while (colors.indexOf(color) >= 0);
+//         colors.push("#" + ("000000" + color.toString(16)).slice(-6));
+//     }
+//     console.log(colors);
+  
+  //Colors = {};
+  var ColorNames = {
+      aqua: "#00ffff",
+      azure: "#f0ffff",
+      beige: "#f5f5dc",
+      black: "#000000",
+      blue: "#0000ff",
+      brown: "#a52a2a",
+      cyan: "#00ffff",
+      darkblue: "#00008b",
+      darkcyan: "#008b8b",
+      darkgrey: "#a9a9a9",
+      darkgreen: "#006400",
+      darkkhaki: "#bdb76b",
+      darkmagenta: "#8b008b",
+      darkolivegreen: "#556b2f",
+      darkorange: "#ff8c00",
+      darkorchid: "#9932cc",
+      darkred: "#8b0000",
+      darksalmon: "#e9967a",
+      darkviolet: "#9400d3",
+      fuchsia: "#ff00ff",
+      gold: "#ffd700",
+      green: "#008000",
+      indigo: "#4b0082",
+      khaki: "#f0e68c",
+      lightblue: "#add8e6",
+      lightcyan: "#e0ffff",
+      lightgreen: "#90ee90",
+      lightgrey: "#d3d3d3",
+      lightpink: "#ffb6c1",
+      lightyellow: "#ffffe0",
+      lime: "#00ff00",
+      magenta: "#ff00ff",
+      maroon: "#800000",
+      navy: "#000080",
+      olive: "#808000",
+      orange: "#ffa500",
+      pink: "#ffc0cb",
+      purple: "#800080",
+      violet: "#800080",
+      red: "#ff0000",
+      silver: "#c0c0c0",
+      yellow: "#ffff00"
+  };
+  
+    var colors = Object.keys(ColorNames);
+    console.log(colors.length);
+
 
     // setting up the canvas and one paper tool
     var canvas = document.getElementById('myCanvas');
     paper.setup(canvas);
     var tool = new paper.Tool();
+  
+    var myPath = new paper.Path();
+    
+  
+    var randomNum = Math.random()*42;
+    var userID = Math.trunc(randomNum);
+    
+    var myColor = colors[userID];
+    myPath.strokeColor = myColor;
+  
+    var theirPath = new paper.Path();    
+    var socket = new WebSocket('wss://p3-websockets-juliannawhite-juliannawhite13758275.codeanyapp.com/ws/draw');
+  
+    tool.onMouseMove = function(event) {
+      myPath.add(event.point);
+      var pointInfo = {"x": event.point.x, "y":event.point.y, "userID": userID};
+      var pointInfoJSON = JSON.stringify(pointInfo)
+      socket.send(pointInfoJSON);
+     }
 
-    // getting the URL (you may want to use for Exercise 3)
-    var url = window.location.href;
-
-    // var socket = new WebSocket(
-    //     'wss://<your url here>/ws/draw');
-
+    // triggered when receiving a message from the server
+    socket.onmessage = function(receivedMessage) {
+      
+      var pointInfo = JSON.parse(receivedMessage.data);      
+      var point = new paper.Point(pointInfo.x, pointInfo.y);
+      
+      if (pointInfo.userID !== userID) {
+        theirPath.strokeColor = colors[pointInfo.userID];
+        theirPath.add(point);
+      }
+    };
+   
 
 </script>
 </html>
