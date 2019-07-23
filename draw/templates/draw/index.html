@@ -52,8 +52,7 @@
     
     <hr>
   <br>
-    <canvas id="myCanvas" width="590px" height="550px" style="text-align:center;"></canvas>
-</body>
+    <canvas id="myCanvas" width="590px" height="550px" style="text-align:center;"></canvas></body>
 <script>
   
   //Colors = {};
@@ -82,6 +81,12 @@
       green: "#008000",
       indigo: "#4b0082",
       khaki: "#f0e68c",
+      lightblue: "#add8e6",
+      lightcyan: "#e0ffff",
+      lightgreen: "#90ee90",
+      lightgrey: "#d3d3d3",
+      lightpink: "#ffb6c1",
+      lightyellow: "#ffffe0",
       lime: "#00ff00",
       magenta: "#ff00ff",
       maroon: "#800000",
@@ -99,13 +104,10 @@
     var colors = Object.keys(ColorNames);
     var canvas = document.getElementById('myCanvas');
     paper.setup(canvas);
-  
-    var ctx = canvas.getContext("2d");
     var tool = new paper.Tool();
     var url = window.location.href;
   
-    console.log(colors.length);
-    var randomNum = Math.random()*colors.length;
+    var randomNum = Math.random()*42;
     var userID = Math.trunc(randomNum);
     var myColor = colors[userID];
     var myPath = new paper.Path();
@@ -122,6 +124,7 @@
     tool.onMouseMove = function(event) {
       
       if (url !== url_large) {
+          console.log("hit em with that oof");
          myPath.add(event.point);
          var pointInfo = {"x": event.point.x, "y":event.point.y, "userID":userID, "color":myColor};
          var pointInfoJSON = JSON.stringify(pointInfo)
@@ -134,7 +137,7 @@
       
       var pointInfo = JSON.parse(receivedMessage.data);      
     
-      //if (url===url_large) {
+      if (url===url_large) {
              
              var point = new paper.Point(pointInfo.x, pointInfo.y);
              //theirPath.strokeColor = pointInfo.color;
@@ -147,13 +150,16 @@
                 paths[pointInfo.userID].strokeColor = pointInfo.color;
                 paths[pointInfo.userID].add(point);
                 
-     //         }
-//       } else {
-//         return;
-//       }
+              }
+      } else {
+        return;
+      }
     };
   
- 
+  
+  socket.onclsoe = function(e) {
+    console.error("Socket closed unexpectedly");
+  };
   
   window.addEventListener("devicemotion", (event) =>{
     
@@ -174,10 +180,10 @@
                           
 window.addEventListener("deviceorientation", (event) => {
   
-  if (event.gamma > 80) {
+  if (event.gamma > 30) {
     myPath.strokeColor = paper.Color.random();
   }  
- });                        
+ }); 
    
 
 </script>
