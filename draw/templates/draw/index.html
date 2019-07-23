@@ -24,14 +24,6 @@
     <canvas id="myCanvas" width="590px" height="550px" style="text-align:center;"></canvas>
 </body>
 <script>
-//     var colors = [];
-//     while (colors.length < 100) {
-//         do {
-//             var color = Math.floor((Math.random()*1000000)+1);
-//         } while (colors.indexOf(color) >= 0);
-//         colors.push("#" + ("000000" + color.toString(16)).slice(-6));
-//     }
-//     console.log(colors);
   
   //Colors = {};
   var ColorNames = {
@@ -80,44 +72,64 @@
   };
   
     var colors = Object.keys(ColorNames);
-    console.log(colors.length);
-
-
-    // setting up the canvas and one paper tool
     var canvas = document.getElementById('myCanvas');
     paper.setup(canvas);
     var tool = new paper.Tool();
-  
-    var myPath = new paper.Path();
-    
+    var url = window.location.href;
   
     var randomNum = Math.random()*42;
     var userID = Math.trunc(randomNum);
-    
     var myColor = colors[userID];
+    var myPath = new paper.Path();
+    var paths = {userID:myPath};
+  
+    
+    var url_large = "https://p3-websockets-juliannawhite-juliannawhite13758275.codeanyapp.com/draw/?size=large";
+    
     myPath.strokeColor = myColor;
   
-    var theirPath = new paper.Path();    
+    //var theirPath = new paper.Path();    
     var socket = new WebSocket('wss://p3-websockets-juliannawhite-juliannawhite13758275.codeanyapp.com/ws/draw');
   
     tool.onMouseMove = function(event) {
-      myPath.add(event.point);
-      var pointInfo = {"x": event.point.x, "y":event.point.y, "userID": userID};
-      var pointInfoJSON = JSON.stringify(pointInfo)
-      socket.send(pointInfoJSON);
+      
+      if (url !== url_large) {
+          console.log("hit em with that oof");
+         myPath.add(event.point);
+         var pointInfo = {"x": event.point.x, "y":event.point.y, "userID":userID, "color":myColor};
+         var pointInfoJSON = JSON.stringify(pointInfo)
+         socket.send(pointInfoJSON);
+      }
      }
 
     // triggered when receiving a message from the server
     socket.onmessage = function(receivedMessage) {
       
       var pointInfo = JSON.parse(receivedMessage.data);      
-      var point = new paper.Point(pointInfo.x, pointInfo.y);
-      
-      if (pointInfo.userID !== userID) {
-        theirPath.strokeColor = colors[pointInfo.userID];
-        theirPath.add(point);
+    
+      if (url===url_large) {
+             
+             var point = new paper.Point(pointInfo.x, pointInfo.y);
+             //theirPath.strokeColor = pointInfo.color;
+        
+              if (pointInfo.userID in paths) {
+                paths[pointInfo.userID].strokeColor = pointInfo.color;
+                paths[pointInfo.userID].add(point);
+              } else {
+                paths[pointInfo.userID] = new paper.Path();
+                paths[pointInfo.userID].strokeColor = pointInfo.color;
+                paths[pointInfo.userID].add(point);
+                
+              }
+      } else {
+        return;
       }
     };
+  
+  
+  socket.onclsoe = function(e) {
+    console.error("Socket closed unexpectedly");
+  }
    
 
 </script>
